@@ -1,0 +1,15 @@
+<!-- relationship_app/templates/member_view.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Dashboard</title>
+</head>
+<body>
+    <h2>Welcome, Member</h2>
+    <p>You have access to member-specific content.</p>
+    <a href="{% url 'list_books' %}">View Books</a> | 
+    <a href="{% url 'logout' %}">Logout</a>
+</body>
+</html>
