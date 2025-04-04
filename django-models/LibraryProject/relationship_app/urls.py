@@ -13,9 +13,9 @@ from relationship_app.views import (
 urlpatterns = [
     # Book URLs
     path('books/', list_books, name='list_books'),
-    path('books/add/', add_book, name='add_book'),
-    path('books/<int:pk>/edit/', edit_book, name='edit_book'),
-    path('books/<int:pk>/delete/', delete_book, name='delete_book'),
+    path('add_book/', add_book, name='add_book'),
+    path('edit_book/<int:pk>/', edit_book, name='edit_book'),
+    path('delete_book/<int:pk>/', delete_book, name='delete_book'),
     
     # Author URLs
     path('authors/', author_list, name='author_list'),
