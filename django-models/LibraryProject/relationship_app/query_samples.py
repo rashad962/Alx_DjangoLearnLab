@@ -1,11 +1,14 @@
-from relationship_app.models import Library
+from relationship_app.models import Author, Book
 
-# Replace 'library_name' with the actual name of the library you want to query
-library_name = "Central Library"  
+# Replace 'author_name' with the actual name of the author you want to query
+author_name = "George Orwell"  
 
-library = Library.objects.get(name=library_name)  # Ensure this line exists
-books = library.books.all()  # Assuming a ManyToMany relationship with Book
+# Get the author instance
+author = Author.objects.get(name=author_name)  # Ensure this line exists
 
-# Print all books in the library
-for book in books:
+# Query all books by this author
+books_by_author = Book.objects.filter(author=author)  # Ensure this line exists
+
+# Print all books by the author
+for book in books_by_author:
     print(book.title)
