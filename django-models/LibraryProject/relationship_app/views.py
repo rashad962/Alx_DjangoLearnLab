@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # Import necessary modules
+=======
+# relationship_app/views.py
+>>>>>>> 7807924 (vuje)
 from django.shortcuts import render
 from django.views.generic import DetailView
 from .models import Book, Library  # Ensure Library is imported here
