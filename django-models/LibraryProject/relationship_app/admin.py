@@ -1,7 +1,15 @@
 from django.contrib import admin
-from .models import Author, Book, Library, Librarian
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
+from .models import UserProfile
 
-admin.site.register(Author)
-admin.site.register(Book)
-admin.site.register(Library)
-admin.site.register(Librarian)
+class UserProfileInline(admin.StackedInline):
+    model = UserProfile
+    can_delete = False
+    verbose_name_plural = 'User Profiles'
+
+class CustomUserAdmin(UserAdmin):
+    inlines = (UserProfileInline,)
+
+admin.site.unregister(User)
+admin.site.register(User, CustomUserAdmin)
