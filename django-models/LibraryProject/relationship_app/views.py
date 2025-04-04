@@ -1,29 +1,47 @@
 from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required
-from django.views.generic import DetailView
-from .models import Book, Library
+from .models import UserProfile
 
-# Book Views
+# Role check functions
+def check_admin(user):
+    return user.is_authenticated and hasattr(user, 'userprofile') and user.userprofile.role == 'ADMIN'
+
+def check_librarian(user):
+    return user.is_authenticated and hasattr(user, 'userprofile') and user.userprofile.role == 'LIBRARIAN'
+
+def check_member(user):
+    return user.is_authenticated and hasattr(user, 'userprofile') and user.userprofile.role == 'MEMBER'
+
+# Role-based views
 @login_required
-def list_books(request):
-    books = Book.objects.all()
-    return render(request, 'relationship_app/list_books.html', {'books': books})
+@user_passes_test(check_admin)
+def admin_view(request):
+    return render(request, 'relationship_app/admin_view.html')
 
-class LibraryDetailView(DetailView):
-    model = Library
-    template_name = 'relationship_app/library_detail.html'
-    context_object_name = 'library'
+@login_required
+@user_passes_test(check_librarian)
+def librarian_view(request):
+    return render(request, 'relationship_app/librarian_view.html')
 
-# Authentication Views
+@login_required
+@user_passes_test(check_member)
+def member_view(request):
+    return render(request, 'relationship_app/member_view.html')
+
+# Registration view
 def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
+            # Assign default Member role
+            profile = user.userprofile
+            profile.role = 'MEMBER'
+            profile.save()
             login(request, user)
-            return redirect('list_books')
+            return redirect('member_view')
     else:
         form = UserCreationForm()
     return render(request, 'relationship_app/register.html', {'form': form})
