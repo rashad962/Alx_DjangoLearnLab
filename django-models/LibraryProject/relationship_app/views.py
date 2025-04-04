@@ -1,3 +1,4 @@
+# Import necessary modules
 from django.shortcuts import render
 from django.views.generic import DetailView
 from .models import Book, Library  # Ensure Library is imported here
