@@ -1,27 +1,23 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from django.utils.translation import gettext_lazy as _
-from .models import CustomUser
+from django.contrib.auth.admin import GroupAdmin
+from django.contrib.auth.models import Group, Permission
+from .models import Book, CustomUser
 
-class CustomUserAdmin(UserAdmin):
-    model = CustomUser
-    fieldsets = (
-        (None, {'fields': ('email', 'password')}),
-        (_('Personal info'), {'fields': ('first_name', 'last_name', 'date_of_birth', 'profile_photo')}),
-        (_('Permissions'), {
-            'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),
-        }),
-        (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
-    )
-    add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2'),
-        }),
-    )
-    list_display = ('email', 'first_name', 'last_name', 'is_staff')
-    search_fields = ('email', 'first_name', 'last_name')
-    ordering = ('email',)
-    filter_horizontal = ('groups', 'user_permissions',)
+class BookAdmin(admin.ModelAdmin):
+    list_display = ('title', 'author', 'published_date', 'is_available')
+    list_filter = ('is_available',)
+    search_fields = ('title', 'author')
 
-admin.site.register(CustomUser, CustomUserAdmin)
+class CustomGroupAdmin(GroupAdmin):
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields['permissions'].queryset = Permission.objects.filter(
+            content_type__app_label__in=['bookshelf', 'auth']
+        )
+        return form
+
+# Unregister the default Group admin and register our custom one
+admin.site.unregister(Group)
+admin.site.register(Group, CustomGroupAdmin)
+admin.site.register(Book, BookAdmin)
+admin.site.register(CustomUser)

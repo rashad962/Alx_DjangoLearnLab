@@ -1,68 +1,46 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.decorators import login_required, permission_required
-from django.contrib import messages
-from .models import Book, Author
-from .forms import BookForm, AuthorForm
+from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy
+from django.shortcuts import render, get_object_or_404
+from .models import Book
 
 @login_required
-def list_books(request):
-    books = Book.objects.all()
-    if not request.user.has_perm('relationship_app.can_view_restricted'):
-        books = books.filter(available_copies__gt=0)
-    return render(request, 'relationship_app/list_books.html', {'books': books})
-
-@login_required
-@permission_required('relationship_app.can_add_book', raise_exception=True)
-def add_book(request):
-    if request.method == 'POST':
-        form = BookForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Book added successfully!')
-            return redirect('list_books')
-    else:
-        form = BookForm()
-    return render(request, 'relationship_app/book_form.html', {'form': form, 'action': 'Add'})
-
-@login_required
-@permission_required('relationship_app.can_change_book', raise_exception=True)
-def edit_book(request, pk):
+@permission_required('bookshelf.can_view_book', raise_exception=True)
+def book_detail(request, pk):
     book = get_object_or_404(Book, pk=pk)
-    if request.method == 'POST':
-        form = BookForm(request.POST, instance=book)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Book updated successfully!')
-            return redirect('list_books')
-    else:
-        form = BookForm(instance=book)
-    return render(request, 'relationship_app/book_form.html', {'form': form, 'action': 'Edit'})
+    return render(request, 'bookshelf/book_detail.html', {'book': book})
 
-@login_required
-@permission_required('relationship_app.can_delete_book', raise_exception=True)
-def delete_book(request, pk):
-    book = get_object_or_404(Book, pk=pk)
-    if request.method == 'POST':
-        book.delete()
-        messages.success(request, 'Book deleted successfully!')
-        return redirect('list_books')
-    return render(request, 'relationship_app/book_confirm_delete.html', {'book': book})
+class BookListView(PermissionRequiredMixin, ListView):
+    model = Book
+    permission_required = 'bookshelf.can_view_book'
+    template_name = 'bookshelf/book_list.html'
+    context_object_name = 'books'
 
-@login_required
-def author_list(request):
-    authors = Author.objects.all()
-    return render(request, 'relationship_app/author_list.html', {'authors': authors})
+class BookCreateView(PermissionRequiredMixin, CreateView):
+    model = Book
+    fields = ['title', 'author', 'published_date', 'is_available']
+    permission_required = 'bookshelf.can_create_book'
+    template_name = 'bookshelf/book_form.html'
+    success_url = reverse_lazy('book-list')
 
-@login_required
-@permission_required('relationship_app.can_add_book', raise_exception=True)
-def add_author(request):
-    if request.method == 'POST':
-        form = AuthorForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Author added successfully!')
-            return redirect('author_list')
-    else:
-        form = AuthorForm()
-    return render(request, 'relationship_app/author_form.html', {'form': form, 'action': 'Add'})
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        return super().form_valid(form)
+
+class BookUpdateView(PermissionRequiredMixin, UpdateView):
+    model = Book
+    fields = ['title', 'author', 'published_date', 'is_available']
+    permission_required = 'bookshelf.can_edit_book'
+    template_name = 'bookshelf/book_form.html'
+    success_url = reverse_lazy('book-list')
+
+    def form_valid(self, form):
+        form.instance.last_modified_by = self.request.user
+        return super().form_valid(form)
+
+class BookDeleteView(PermissionRequiredMixin, DeleteView):
+    model = Book
+    permission_required = 'bookshelf.can_delete_book'
+    template_name = 'bookshelf/book_confirm_delete.html'
+    success_url = reverse_lazy('book-list')
