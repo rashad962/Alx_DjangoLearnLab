@@ -1,5 +1,5 @@
 from django import forms
-from django.core.validators import validate_slug, ProhibitNullCharactersValidator
+from django.core.validators import validate_slug
 from django.utils.html import escape
 from .models import Book
 
@@ -14,7 +14,6 @@ class SearchForm(forms.Form):
     )
 
     def clean_query(self):
-        """Additional sanitization"""
         query = self.cleaned_data['query']
         return escape(query)
 
@@ -38,22 +37,7 @@ class ExampleForm(forms.ModelForm):
         }
 
     def clean_title(self):
-        """Additional title validation"""
         title = self.cleaned_data['title']
         if '<script>' in title.lower():
             raise forms.ValidationError("Invalid characters in title")
         return escape(title)
-
-    def clean_author(self):
-        """Additional author validation"""
-        author = self.cleaned_data['author']
-        return escape(author)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Add security-related attributes to all fields
-        for field_name, field in self.fields.items():
-            field.widget.attrs.update({
-                'xss_protected': True,
-                'data-sanitize': True
-            })
