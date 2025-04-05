@@ -1,57 +1,60 @@
-# Security settings for production
-DEBUG = False  # Always set to False in production
+from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.http import require_http_methods
+from .forms import SearchForm, ExampleForm
+from django.shortcuts import render, redirect, get_object_or_404
+from django.core.exceptions import SuspiciousOperation
+from .forms import SearchForm, ExampleForm  # Added ExampleForm import
+from .models import Book
 
-# Security middleware and settings
-SECURE_BROWSER_XSS_FILTER = True
-X_FRAME_OPTIONS = 'DENY'
-SECURE_CONTENT_TYPE_NOSNIFF = True
+@csrf_protect
+@require_http_methods(["GET", "POST"])
+def search_books(request):
+    """Safe search implementation with parameterized queries"""
+    results = []
+    form = SearchForm(request.GET or None)
+    
+    if form.is_valid():
+        query = form.cleaned_data['query']
+        results = Book.objects.filter(title__icontains=query)[:100]
+    
+    return render(request, 'bookshelf/search.html', {
+        'form': form,
+        'results': results
+    })
 
-# HTTPS settings
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
-SECURE_SSL_REDIRECT = True  # Redirect all non-HTTPS requests to HTTPS
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+@require_http_methods(["GET", "POST"])
+@csrf_protect
+def book_create(request):
+    """Secure book creation view using ExampleForm"""
+    if request.method == 'POST':
+        form = ExampleForm(request.POST)
+        if form.is_valid():
+            book = form.save(commit=False)
+            book.created_by = request.user
+            book.save()
+            return redirect('book-detail', pk=book.pk)
+    else:
+        form = ExampleForm()
+    
+    return render(request, 'bookshelf/book_form.html', {'form': form})
 
-# Content Security Policy (CSP)
-MIDDLEWARE = [
-    # ... other middleware ...
-    'csp.middleware.CSPMiddleware',
-]
+@require_http_methods(["GET", "POST"])
+@csrf_protect
+def book_edit(request, pk):
+    """Secure book editing view using ExampleForm"""
+    book = get_object_or_404(Book, pk=pk)
+    if request.method == 'POST':
+        form = ExampleForm(request.POST, instance=book)
+        if form.is_valid():
+            book = form.save(commit=False)
+            book.last_modified_by = request.user
+            book.save()
+            return redirect('book-detail', pk=book.pk)
+    else:
+        form = ExampleForm(instance=book)
+    
+    return render(request, 'bookshelf/book_form.html', {'form': form})
 
-CSP_DEFAULT_SRC = ("'self'",)
-CSP_SCRIPT_SRC = ("'self'",)
-CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")  # 'unsafe-inline' only if necessary
-CSP_IMG_SRC = ("'self'", "data:")
-CSP_FONT_SRC = ("'self'",)
-CSP_CONNECT_SRC = ("'self'",)
-CSP_OBJECT_SRC = ("'none'",)
-CSP_BASE_URI = ("'none'",)
-CSP_FRAME_ANCESTORS = ("'none'",)
-
-# Password validation
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-        'OPTIONS': {
-            'min_length': 12,
-        }
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
-
-# Session security
-SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
-SESSION_COOKIE_HTTPONLY = True
-SESSION_SAVE_EVERY_REQUEST = True  # Extends session on each request
-
-# CSRF settings
-CSRF_COOKIE_HTTPONLY = True
-CSRF_FAILURE_VIEW = 'bookshelf.views.csrf_failure'  # Custom CSRF failure view
+def csrf_failure(request, reason=""):
+    """Custom CSRF failure view"""
+    return render(request, 'bookshelf/csrf_failure.html', status=403)
