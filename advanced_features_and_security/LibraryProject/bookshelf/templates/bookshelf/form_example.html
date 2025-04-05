@@ -1,39 +1,15 @@
+mkdir -p bookshelf/templates/bookshelf
+cat > bookshelf/templates/bookshelf/form_example.html << 'EOL'
 {% extends "base.html" %}
 
 {% block content %}
 <div class="container">
-    <h2>Search Books</h2>
-    
-    <!-- Secure form with CSRF token -->
-    <form method="get" action="{% url 'book-search' %}">
-        {% csrf_token %}  <!-- CSRF protection -->
-        
-        <div class="form-group">
-            <label for="{{ form.query.id_for_label }}">Search:</label>
-            {{ form.query }}
-            {% if form.query.errors %}
-                <div class="alert alert-danger">
-                    {{ form.query.errors|escape }}  <!-- Always escape template variables -->
-                </div>
-            {% endif %}
-        </div>
-        
-        <button type="submit" class="btn btn-primary">Search</button>
+    <h2>Example Form</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Submit</button>
     </form>
-
-    <!-- Results with safe output -->
-    {% if results %}
-    <div class="mt-4">
-        <h3>Results</h3>
-        <ul class="list-group">
-            {% for book in results %}
-            <li class="list-group-item">
-                <strong>{{ book.title|escape }}</strong>  <!-- Always escape -->
-                <span class="text-muted">by {{ book.author|escape }}</span>
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
-    {% endif %}
 </div>
 {% endblock %}
+EOL
