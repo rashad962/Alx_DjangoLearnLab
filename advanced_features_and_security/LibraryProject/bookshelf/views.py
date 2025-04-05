@@ -1,7 +1,7 @@
 from django.views.decorators.csrf import csrf_protect, requires_csrf_token
 from django.views.decorators.http import require_http_methods
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import SearchForm, ExampleForm  # ✅ Proper import
+from .forms import SearchForm, ExampleForm  # ✅ <-- This line MUST be here
 from .models import Book
 
 @csrf_protect
@@ -52,8 +52,8 @@ def book_edit(request, pk):
 
 @requires_csrf_token
 def csrf_failure(request, reason=""):
-    form = ExampleForm()  # Optional: show a form
+    form = ExampleForm()
     return render(request, 'bookshelf/csrf_failure.html', {
         'form': form,
-        'reason': reason
+        'reason': reason,
     }, status=403)
