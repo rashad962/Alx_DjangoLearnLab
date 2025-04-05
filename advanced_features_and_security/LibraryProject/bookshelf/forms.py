@@ -1,19 +1,18 @@
 from django import forms
-from .models import Book, Author
+from django.core.validators import validate_slug
+from django.utils.html import escape
 
-class BookForm(forms.ModelForm):
-    class Meta:
-        model = Book
-        fields = ['title', 'author', 'publication_year', 'isbn', 'available_copies']
-        widgets = {
-            'publication_year': forms.NumberInput(attrs={'min': 1000, 'max': 2100}),
-            'isbn': forms.TextInput(attrs={'pattern': '[0-9]{13}'}),
-        }
+class SearchForm(forms.Form):
+    query = forms.CharField(
+        max_length=100,
+        validators=[validate_slug],  # Restrict input to safe characters
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'xss_protected': True  # Custom attribute for documentation
+        })
+    )
 
-class AuthorForm(forms.ModelForm):
-    class Meta:
-        model = Author
-        fields = ['name', 'bio', 'birth_date']
-        widgets = {
-            'birth_date': forms.DateInput(attrs={'type': 'date'}),
-        }
+    def clean_query(self):
+        """Additional sanitization"""
+        query = self.cleaned_data['query']
+        return escape(query)  # HTML escape the input

@@ -1,46 +1,57 @@
-from django.contrib.auth.decorators import login_required, permission_required
-from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from django.urls import reverse_lazy
-from django.shortcuts import render, get_object_or_404
-from .models import Book
+# Security settings for production
+DEBUG = False  # Always set to False in production
 
-@login_required
-@permission_required('bookshelf.can_view_book', raise_exception=True)
-def book_detail(request, pk):
-    book = get_object_or_404(Book, pk=pk)
-    return render(request, 'bookshelf/book_detail.html', {'book': book})
+# Security middleware and settings
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_CONTENT_TYPE_NOSNIFF = True
 
-class BookListView(PermissionRequiredMixin, ListView):
-    model = Book
-    permission_required = 'bookshelf.can_view_book'
-    template_name = 'bookshelf/book_list.html'
-    context_object_name = 'books'
+# HTTPS settings
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = True  # Redirect all non-HTTPS requests to HTTPS
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-class BookCreateView(PermissionRequiredMixin, CreateView):
-    model = Book
-    fields = ['title', 'author', 'published_date', 'is_available']
-    permission_required = 'bookshelf.can_create_book'
-    template_name = 'bookshelf/book_form.html'
-    success_url = reverse_lazy('book-list')
+# Content Security Policy (CSP)
+MIDDLEWARE = [
+    # ... other middleware ...
+    'csp.middleware.CSPMiddleware',
+]
 
-    def form_valid(self, form):
-        form.instance.created_by = self.request.user
-        return super().form_valid(form)
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = ("'self'",)
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")  # 'unsafe-inline' only if necessary
+CSP_IMG_SRC = ("'self'", "data:")
+CSP_FONT_SRC = ("'self'",)
+CSP_CONNECT_SRC = ("'self'",)
+CSP_OBJECT_SRC = ("'none'",)
+CSP_BASE_URI = ("'none'",)
+CSP_FRAME_ANCESTORS = ("'none'",)
 
-class BookUpdateView(PermissionRequiredMixin, UpdateView):
-    model = Book
-    fields = ['title', 'author', 'published_date', 'is_available']
-    permission_required = 'bookshelf.can_edit_book'
-    template_name = 'bookshelf/book_form.html'
-    success_url = reverse_lazy('book-list')
+# Password validation
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 12,
+        }
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
 
-    def form_valid(self, form):
-        form.instance.last_modified_by = self.request.user
-        return super().form_valid(form)
+# Session security
+SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
+SESSION_COOKIE_HTTPONLY = True
+SESSION_SAVE_EVERY_REQUEST = True  # Extends session on each request
 
-class BookDeleteView(PermissionRequiredMixin, DeleteView):
-    model = Book
-    permission_required = 'bookshelf.can_delete_book'
-    template_name = 'bookshelf/book_confirm_delete.html'
-    success_url = reverse_lazy('book-list')
+# CSRF settings
+CSRF_COOKIE_HTTPONLY = True
+CSRF_FAILURE_VIEW = 'bookshelf.views.csrf_failure'  # Custom CSRF failure view
