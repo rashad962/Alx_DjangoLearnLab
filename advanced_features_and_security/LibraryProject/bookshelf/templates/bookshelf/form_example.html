@@ -1,15 +1,14 @@
-mkdir -p bookshelf/templates/bookshelf
-cat > bookshelf/templates/bookshelf/form_example.html << 'EOL'
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container">
+<div class="container mt-4">
     <h2>Example Form</h2>
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        {{ form.as_p }}
+        <div class="mb-3">
+            {{ form.as_p }}
+        </div>
         <button type="submit" class="btn btn-primary">Submit</button>
     </form>
 </div>
 {% endblock %}
-EOL
