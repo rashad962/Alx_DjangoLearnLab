@@ -1,11 +1,10 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from . import views
+from .views import PostFeedViewSet
 
 router = DefaultRouter()
-router.register(r'posts', views.PostViewSet)
-router.register(r'comments', views.CommentViewSet)
+router.register(r'feed', PostFeedViewSet, basename='post-feed')
 
 urlpatterns = [
-    path('', include(router.urls)),  # Registers the router URLs for post and comment viewsets
+    path('', include(router.urls)),
 ]
