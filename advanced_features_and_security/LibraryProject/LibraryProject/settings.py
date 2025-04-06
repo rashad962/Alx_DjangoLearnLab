@@ -1,5 +1,16 @@
 # Security settings for the Django application
 import os
+# Add 'csp' to installed apps
+INSTALLED_APPS += ['csp']
+
+# Add CSP middleware
+MIDDLEWARE += ['csp.middleware.CSPMiddleware']
+
+# Define Content Security Policy (CSP) settings
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = ("'self'", "https://trusted.cdn.com")  # Add trusted script sources
+CSP_STYLE_SRC = ("'self'", "https://trusted.cdn.com")   # Add trusted style sources
+
 
 # ------------- Django Security Settings -------------
 
