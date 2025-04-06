@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from .models import Book
-from .forms import BookSearchForm, ExampleForm
+from .forms import BookSearchForm, ExampleForm  # ✅ Import both forms
 
 def search_books(request):
     form = BookSearchForm(request.GET or None)
@@ -19,7 +19,6 @@ def example_form_view(request):
         if form.is_valid():
             name = form.cleaned_data['name']
             email = form.cleaned_data['email']
-            # You can add saving logic or just print/log here
             print(f"Received from form - Name: {name}, Email: {email}")
             return render(request, 'bookshelf/form_example.html', {
                 'form': ExampleForm(), 'success': True
