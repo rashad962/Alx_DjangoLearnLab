@@ -1,3 +1,5 @@
+from .forms import BookSearchForm, ExampleForm
+from .forms import ExampleForm
 from django.shortcuts import render
 from .models import Book
 from .forms import BookSearchForm, ExampleForm  # ✅ Import both forms
