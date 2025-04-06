@@ -1,21 +1,25 @@
-from django.db.models import Q
-from django.shortcuts import render
-from .models import Post, Tag
+from django.views.generic import CreateView, UpdateView
+from django.urls import reverse_lazy
+from .models import Post
+from .forms import PostForm
 
-def search(request):
-    query = request.GET.get('q')
-    if query:
-        posts = Post.objects.filter(
-            Q(title__icontains=query) | 
-            Q(content__icontains=query) | 
-            Q(tags__name__icontains=query)
-        ).distinct()
-    else:
-        posts = Post.objects.all()
+class PostCreateView(CreateView):
+    model = Post
+    form_class = PostForm
+    template_name = 'blog/post_form.html'
 
-    return render(request, 'blog/search_results.html', {'posts': posts, 'query': query})
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
 
-def tagged_posts(request, tag_name):
-    tag = Tag.objects.get(name=tag_name)
-    posts = tag.posts.all()
-    return render(request, 'blog/tagged_posts.html', {'posts': posts, 'tag': tag})
+class PostUpdateView(UpdateView):
+    model = Post
+    form_class = PostForm
+    template_name = 'blog/post_form.html'
+    
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy('post-detail', kwargs={'pk': self.object.pk})
