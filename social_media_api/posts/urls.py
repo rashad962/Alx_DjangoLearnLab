@@ -1,10 +1,6 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import PostFeedViewSet
-
-router = DefaultRouter()
-router.register(r'feed', PostFeedViewSet, basename='post-feed')
+from django.urls import path
+from .views import FeedView
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('feed/', FeedView.as_view(), name='user_feed'),
 ]
