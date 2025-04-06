@@ -1,11 +1,10 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
-from rest_framework.decorators import api_view
+from rest_framework.exceptions import NotFound
 
 User = get_user_model()  # Use your custom user model
 
-# View to follow a user
 class FollowUserView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
@@ -15,16 +14,14 @@ class FollowUserView(generics.GenericAPIView):
         except User.DoesNotExist:
             return Response({'detail': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Prevent a user from following themselves
+        # Prevent following oneself
         if user_to_follow == request.user:
             return Response({'detail': 'You cannot follow yourself'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Add user to the 'following' relationship
+        # Add user to the following list
         request.user.following.add(user_to_follow)
         return Response({'detail': f'You are now following {user_to_follow.username}'}, status=status.HTTP_200_OK)
 
-
-# View to unfollow a user
 class UnfollowUserView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
@@ -34,10 +31,10 @@ class UnfollowUserView(generics.GenericAPIView):
         except User.DoesNotExist:
             return Response({'detail': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Prevent a user from unfollowing themselves
+        # Prevent unfollowing oneself
         if user_to_unfollow == request.user:
             return Response({'detail': 'You cannot unfollow yourself'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Remove user from the 'following' relationship
+        # Remove user from the following list
         request.user.following.remove(user_to_unfollow)
         return Response({'detail': f'You have unfollowed {user_to_unfollow.username}'}, status=status.HTTP_200_OK)
