@@ -1,7 +1,10 @@
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include  # Make sure 'include' is imported
+from rest_framework.authtoken import views as auth_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/accounts/', include('accounts.urls')),
+    path('api-auth/', include('rest_framework.urls')),  # For the browsable API
+    path('api-token-auth/', auth_views.obtain_auth_token),  # Token authentication
+    path('posts/', include('posts.urls')),  # Include the posts URLs
 ]
