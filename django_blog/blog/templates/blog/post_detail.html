@@ -5,6 +5,11 @@
 {% block content %}
   <h1>{{ post.title }}</h1>
   <p>{{ post.content }}</p>
+<div class="tags">
+    {% for tag in post.tags.all %}
+        <a href="{% url 'tag-detail' tag.name %}">{{ tag.name }}</a>
+    {% endfor %}
+</div>
   <hr>
   <h2>Comments</h2>
   <ul>
