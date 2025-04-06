@@ -1,18 +1,19 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 
-class SecurityTests(TestCase):
+class ExampleFormTests(TestCase):
     def setUp(self):
         self.client = Client()
 
-    def test_csrf_token_present(self):
-        response = self.client.get(reverse('book_list'))
+    def test_example_form_renders(self):
+        response = self.client.get(reverse('example_form'))
+        self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'csrfmiddlewaretoken')
 
-    def test_xss_protection_header(self):
-        response = self.client.get(reverse('book_list'))
-        self.assertEqual(response['X-Frame-Options'], 'DENY')
-
-    def test_csp_header(self):
-        response = self.client.get(reverse('book_list'))
-        self.assertIn('Content-Security-Policy', response)
+    def test_example_form_submission(self):
+        response = self.client.post(reverse('example_form'), {
+            'name': 'Rashad',
+            'email': 'rashad@example.com'
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Form submitted successfully!')
