@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from .models import Book
-from .forms import BookSearchForm
+from .forms import BookSearchForm, ExampleForm
 
 def search_books(request):
     form = BookSearchForm(request.GET or None)
@@ -8,7 +8,23 @@ def search_books(request):
 
     if form.is_valid():
         query = form.cleaned_data['query']
-        # ORM query to prevent SQL injection
         books = Book.objects.filter(title__icontains=query)
 
     return render(request, 'bookshelf/book_list.html', {'form': form, 'books': books})
+
+
+def example_form_view(request):
+    if request.method == 'POST':
+        form = ExampleForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data['name']
+            email = form.cleaned_data['email']
+            # You can add saving logic or just print/log here
+            print(f"Received from form - Name: {name}, Email: {email}")
+            return render(request, 'bookshelf/form_example.html', {
+                'form': ExampleForm(), 'success': True
+            })
+    else:
+        form = ExampleForm()
+
+    return render(request, 'bookshelf/form_example.html', {'form': form})
