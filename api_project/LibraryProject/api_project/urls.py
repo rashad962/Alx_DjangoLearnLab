@@ -1,8 +1,9 @@
-# api/urls.py
+# api_project/urls.py
 
-from django.urls import path
-from . import views
+from django.contrib import admin
+from django.urls import path, include
 
 urlpatterns = [
-    path('books/', views.BookListCreate.as_view(), name='book-list-create'),
+    path('admin/', admin.site.urls),
+    path('api/', include('api.urls')),  # Include the API URLs
 ]
