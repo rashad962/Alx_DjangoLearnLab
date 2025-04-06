@@ -3,32 +3,32 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Book
 from .serializers import BookSerializer
 
-# List all books and allow authenticated users to create books
-class BookList(generics.ListCreateAPIView):
+# ListView: List all books and allow authenticated users to create new books
+class BookListView(generics.ListCreateAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = [AllowAny]  # Allow read-only access for unauthenticated users, authenticated users can create
 
-# Retrieve a single book by ID
-class BookDetail(generics.RetrieveUpdateDestroyAPIView):
+# DetailView: Retrieve a single book by ID, and allow authenticated users to update or delete
+class BookDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = [AllowAny]  # Allow read-only access for unauthenticated users, authenticated users can update/delete
 
-# Create a new book (POST /books/)
-class BookCreate(generics.CreateAPIView):
+# CreateView: Only authenticated users can create new books
+class BookCreateView(generics.CreateAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = [IsAuthenticated]  # Only authenticated users can create books
 
-# Update an existing book (PUT /books/<int:pk>/update/)
-class BookUpdate(generics.UpdateAPIView):
+# UpdateView: Only authenticated users can update a book
+class BookUpdateView(generics.UpdateAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = [IsAuthenticated]  # Only authenticated users can update books
 
-# Delete a book (DELETE /books/<int:pk>/delete/)
-class BookDelete(generics.DestroyAPIView):
+# DeleteView: Only authenticated users can delete a book
+class BookDeleteView(generics.DestroyAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = [IsAuthenticated]  # Only authenticated users can delete books
