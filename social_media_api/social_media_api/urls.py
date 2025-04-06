@@ -6,5 +6,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),  # For the browsable API
     path('api-token-auth/', auth_views.obtain_auth_token),  # Token authentication
-    path('posts/', include('posts.urls')),  # Include the posts URLs
+    path('api/', include('posts.urls')),  # Add 'api/' prefix for posts URLs
 ]
