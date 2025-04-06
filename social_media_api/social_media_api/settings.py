@@ -41,6 +41,11 @@ INSTALLED_APPS = [
     'accounts',
     'rest_framework.authtoken',
 ]
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,  # Adjust the number of items per page
+}
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
