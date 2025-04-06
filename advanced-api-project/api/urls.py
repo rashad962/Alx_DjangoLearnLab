@@ -1,18 +1,12 @@
 # api/urls.py
 
-from django.urls import path, include
-from rest_framework.authtoken.views import obtain_auth_token
-from rest_framework.routers import DefaultRouter
+from django.urls import path
 from . import views
 
-# Create a router and register the BookViewSet
-router = DefaultRouter()
-router.register(r'books_all', views.BookViewSet, basename='book_all')
-
 urlpatterns = [
-    # Token authentication endpoint
-    path('auth-token/', obtain_auth_token, name='api-token-auth'),
-
-    # Other routes
-    path('', include(router.urls)),
+    path('books/', views.BookList.as_view(), name='book-list'),  # List all books and create a book
+    path('books/<int:pk>/', views.BookDetail.as_view(), name='book-detail'),  # Retrieve, update, or delete a book by ID
+    path('books/create/', views.BookCreate.as_view(), name='book-create'),  # Create a new book
+    path('books/<int:pk>/update/', views.BookUpdate.as_view(), name='book-update'),  # Update a book by ID
+    path('books/<int:pk>/delete/', views.BookDelete.as_view(), name='book-delete'),  # Delete a book by ID
 ]
