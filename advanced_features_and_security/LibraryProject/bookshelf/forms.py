@@ -7,3 +7,7 @@ class BookSearchForm(forms.Form):
         required=True,
         widget=forms.TextInput(attrs={'placeholder': 'Enter title...'})
     )
+
+class ExampleForm(forms.Form):
+    name = forms.CharField(label='Your Name', max_length=100)
+    email = forms.EmailField(label='Email')
