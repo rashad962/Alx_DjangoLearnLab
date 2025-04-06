@@ -1,8 +1,6 @@
-# views.py
-
 from django.db.models import Q
 from django.shortcuts import render
-from .models import Post
+from .models import Post, Tag
 
 def search(request):
     query = request.GET.get('q')
@@ -16,3 +14,8 @@ def search(request):
         posts = Post.objects.all()
 
     return render(request, 'blog/search_results.html', {'posts': posts, 'query': query})
+
+def tagged_posts(request, tag_name):
+    tag = Tag.objects.get(name=tag_name)
+    posts = tag.posts.all()
+    return render(request, 'blog/tagged_posts.html', {'posts': posts, 'tag': tag})
