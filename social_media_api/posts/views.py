@@ -2,7 +2,22 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 from .models import Post
+
 from .serializers import PostSerializer
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class UserListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        users = User.objects.all()
+        users_list = [{"id": user.id, "username": user.username} for user in users]
+        return Response({"users": users_list})
 
 class FeedPagination(PageNumberPagination):
     page_size = 10  # Adjust this to set how many posts per page
