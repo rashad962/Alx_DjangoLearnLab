@@ -1,14 +1,20 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Example Form</title>
+</head>
+<body>
+    <h1>Example Form</h1>
 
-{% block content %}
-<div class="container mt-4">
-    <h2>Example Form</h2>
-    <form method="post" enctype="multipart/form-data">
+    {% if success %}
+        <p style="color:green;">Form submitted successfully!</p>
+    {% endif %}
+
+    <form method="POST">
         {% csrf_token %}
-        <div class="mb-3">
-            {{ form.as_p }}
-        </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
+        {{ form.as_p }}
+        <button type="submit">Submit</button>
     </form>
-</div>
-{% endblock %}
+</body>
+</html>
