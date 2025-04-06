@@ -2,9 +2,8 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from rest_framework.decorators import api_view
-from .serializers import CustomUserSerializer
 
-User = get_user_model()
+User = get_user_model()  # Custom user model
 
 class FollowUserView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
