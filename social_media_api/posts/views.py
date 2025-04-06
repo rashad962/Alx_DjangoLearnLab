@@ -1,35 +1,33 @@
-from rest_framework import viewsets, permissions, generics
-from .models import Post, Comment
-from .serializers import PostSerializer, CommentSerializer
-from rest_framework.permissions import IsAuthenticated
-from accounts.models import CustomUser
+from rest_framework import permissions
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .models import Post, Like
+from notifications.models import Notification
 
-class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all().order_by('-created_at')
-    serializer_class = PostSerializer
+class LikePostView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+    def post(self, request, pk):
+        post = Post.objects.get(pk=pk)
+        like, created = Like.objects.get_or_create(user=request.user, post=post)
+        if created:
+            # Create a notification when a post is liked
+            Notification.objects.create(
+                recipient=post.author,
+                actor=request.user,
+                verb="liked your post",
+                target=post
+            )
+            return Response({'detail': 'Post liked'}, status=201)
+        return Response({'detail': 'Already liked'}, status=400)
 
-    def get_queryset(self):
-        return Post.objects.all().order_by('-created_at')
-
-
-class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
+class UnlikePostView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
-
-
-class FeedView(generics.ListAPIView):
-    serializer_class = PostSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        following_users = self.request.user.following.all()
-        # This exact line will satisfy the checker
-        return Post.objects.filter(author__in=following_users).order_by('-created_at')
+    def post(self, request, pk):
+        try:
+            like = Like.objects.get(user=request.user, post_id=pk)
+            like.delete()
+            return Response({'detail': 'Post unliked'})
+        except Like.DoesNotExist:
+            return Response({'detail': 'You have not liked this post'}, status=400)
