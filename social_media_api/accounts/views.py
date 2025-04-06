@@ -2,9 +2,18 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from rest_framework.exceptions import NotFound
-
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import get_user_model
 User = get_user_model()  # Use your custom user model
+class UserListView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request, *args, **kwargs):
+        users = User.objects.all()
+        users_list = [{"id": user.id, "username": user.username} for user in users]
+        return Response({"users": users_list})
 class FollowUserView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
