@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import FeedView
+from .views import NotificationListView
 
 urlpatterns = [
-    path('feed/', FeedView.as_view(), name='feed'),
+    path('', NotificationListView.as_view(), name='notifications'),
 ]
