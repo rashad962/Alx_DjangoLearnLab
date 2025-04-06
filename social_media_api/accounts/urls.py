@@ -1,7 +1,7 @@
 from django.urls import path
-from .views import FollowUser, UnfollowUser
+from .views import FollowUserView, UnfollowUserView
 
 urlpatterns = [
-    path('follow/<int:user_id>/', FollowUser.as_view(), name='follow_user'),
-    path('unfollow/<int:user_id>/', UnfollowUser.as_view(), name='unfollow_user'),
+    path('follow/<int:user_id>/', FollowUserView.as_view(), name='follow-user'),
+    path('unfollow/<int:user_id>/', UnfollowUserView.as_view(), name='unfollow-user'),
 ]
