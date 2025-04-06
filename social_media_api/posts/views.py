@@ -1,29 +1,21 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import filters
-from .models import Post, Comment
-from .serializers import PostSerializer, CommentSerializer
-from .permissions import IsOwnerOrReadOnly  # Custom permission to ensure users can only edit their own posts/comments
+from rest_framework.pagination import PageNumberPagination
+from .models import Post
+from .serializers import PostSerializer
 
-class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all()
+class FeedPagination(PageNumberPagination):
+    page_size = 10  # Adjust this to set how many posts per page
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+class PostFeedViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PostSerializer
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]  # Only authenticated users and owners can modify posts
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['title', 'content']  # Allow searching by title and content
+    permission_classes = [IsAuthenticated]
+    pagination_class = FeedPagination
 
-    def perform_create(self, serializer):
-        # Ensure the post is created by the logged-in user
-        serializer.save(author=self.request.user)
-
-
-class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]  # Only authenticated users and owners can modify comments
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['content']  # Allow searching by comment content
-
-    def perform_create(self, serializer):
-        # Ensure the comment is created by the logged-in user
-        serializer.save(author=self.request.user)
+    def get_queryset(self):
+        # Get posts from users the logged-in user is following
+        user = self.request.user
+        followed_users = user.following.all()
+        return Post.objects.filter(author__in=followed_users).order_by('-created_at')
