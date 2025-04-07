@@ -6,7 +6,13 @@ from django.shortcuts import get_object_or_404  # Import for retrieving objects 
 from .models import Post, Like  # Import your Post and Like models
 from .serializers import PostSerializer  # If you have a serializer for the Post model
 from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
+class LikePostView(APIView):
+    permission_classes = [IsAuthenticated]
+
+
 post = generics.get_object_or_404(Post, pk=pk)
+
 # View to handle liking a post
 class LikePostView(APIView):
     permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
