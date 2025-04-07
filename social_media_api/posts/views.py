@@ -20,7 +20,7 @@ class LikePostView(APIView):
                 Notification.objects.create(
                     recipient=post.author,
                     actor=request.user,
-                    verb='liked your post',
+                    verb="liked your post",
                     target=post
                 )
             return Response({'message': 'Post liked'}, status=status.HTTP_201_CREATED)
