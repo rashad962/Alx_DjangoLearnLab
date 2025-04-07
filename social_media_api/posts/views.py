@@ -6,7 +6,8 @@ from .models import Post, Like
 from accounts.models import CustomUser
 from .serializers import PostSerializer
 from notifications.models import Notification
-
+from rest_framework import generics
+post = generics.get_object_or_404(Post, pk=pk)
 # Like a post
 class LikePostView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
