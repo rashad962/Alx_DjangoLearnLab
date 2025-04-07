@@ -1,6 +1,7 @@
 from rest_framework import generics, permissions
 from .models import Notification
 from .serializers import NotificationSerializer
+from notifications.models import Notification  # Adjust if it's in a different location
 
 class NotificationListView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
