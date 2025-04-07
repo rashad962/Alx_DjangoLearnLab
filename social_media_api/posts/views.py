@@ -5,7 +5,8 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404  # Import for retrieving objects or returning 404
 from .models import Post, Like  # Import your Post and Like models
 from .serializers import PostSerializer  # If you have a serializer for the Post model
-
+from rest_framework import generics
+post = generics.get_object_or_404(Post, pk=pk)
 # View to handle liking a post
 class LikePostView(APIView):
     permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
