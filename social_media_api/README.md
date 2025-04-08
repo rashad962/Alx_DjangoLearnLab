@@ -17,4 +17,3 @@
 
 ---
 
-This should give your Social Media API a much more interactive feel with notifications and likes. Let me know if you need further help!
