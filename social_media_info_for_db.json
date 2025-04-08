@@ -33,7 +33,7 @@
       "password": "pwd2",
       "last_login": "2025-01-01T09:00:00Z",
       "is_superuser": false,
-      "email": "bel@example.com",
+      "email": "bella@example.com",
       "is_staff": false,
       "is_active": true,
       "date_joined": "2025-01-01T00:00:02Z"
