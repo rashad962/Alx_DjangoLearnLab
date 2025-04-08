@@ -10,7 +10,7 @@ requests.
 # How to Use
 ```shell
 # Clone the repository
-git clone https://github.com/olenaliuby/social-media-api.git
+git clone https://github.com/rashad962/Alx_DjangoLearnLab.git
 
 # Create a virtual environment and activate it
 python -m venv venv
