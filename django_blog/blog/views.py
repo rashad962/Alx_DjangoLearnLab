@@ -1,11 +1,11 @@
-from django.shortcuts import render
-from django.db.models import Q  # For complex queries
+from django.contrib.auth.decorators import login_required  # Add this import
+from django.utils.decorators import method_decorator  # This is needed to combine the decorator with class-based views
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.urls import reverse_lazy
 from .models import Post
 from .forms import PostForm
 
-# Post views
 class PostListView(ListView):
     model = Post
     template_name = 'blog/post_list.html'
@@ -16,7 +16,8 @@ class PostDetailView(DetailView):
     model = Post
     template_name = 'blog/post_detail.html'
 
-class PostCreateView(LoginRequiredMixin, CreateView):
+@method_decorator(login_required, name='dispatch')  # Add the decorator to enforce login
+class PostCreateView(CreateView):
     model = Post
     form_class = PostForm
     template_name = 'blog/post_form.html'
@@ -25,6 +26,7 @@ class PostCreateView(LoginRequiredMixin, CreateView):
         form.instance.author = self.request.user
         return super().form_valid(form)
 
+@method_decorator(login_required, name='dispatch')  # Add the decorator to enforce login
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
     form_class = PostForm
@@ -38,25 +40,12 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         post = self.get_object()
         return self.request.user == post.author
 
+@method_decorator(login_required, name='dispatch')  # Add the decorator to enforce login
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Post
     template_name = 'blog/post_confirm_delete.html'
-    success_url = '/posts/'
+    success_url = reverse_lazy('post-list')
 
     def test_func(self):
         post = self.get_object()
         return self.request.user == post.author
-
-# Search view
-def search(request):
-    query = request.GET.get('q')  # Get the search query from the GET request
-    if query:
-        posts = Post.objects.filter(
-            Q(title__icontains=query) |  # Search for title containing the query
-            Q(content__icontains=query) |  # Search for content containing the query
-            Q(tags__name__icontains=query)  # Search for tags containing the query
-        ).distinct()  # Use distinct to avoid duplicate posts
-    else:
-        posts = Post.objects.all()  # If no search query, return all posts
-
-    return render(request, 'blog/search_results.html', {'posts': posts, 'query': query})
