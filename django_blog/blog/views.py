@@ -1,66 +1,40 @@
-from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse
+from django.views.generic import CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy
+from .models import Comment, Post
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from .models import Post, Comment
-from .forms import CommentForm
 
-# List view for comments (optional, usually displayed within a post's detail view)
-class CommentListView(ListView):
-    model = Comment
-    template_name = 'blog/comment_list.html'
-    context_object_name = 'comments'
-
-    def get_queryset(self):
-        post = get_object_or_404(Post, pk=self.kwargs['post_id'])
-        return Comment.objects.filter(post=post)
-
-# Create view for comments (Requires Login)
 class CommentCreateView(LoginRequiredMixin, CreateView):
     model = Comment
-    form_class = CommentForm
+    fields = ['content']
     template_name = 'blog/comment_form.html'
 
     def form_valid(self, form):
-        post = get_object_or_404(Post, pk=self.kwargs['post_id'])
-        form.instance.post = post
         form.instance.author = self.request.user
+        form.instance.post = Post.objects.get(id=self.kwargs['post_id'])
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse('post-detail', kwargs={'pk': self.kwargs['post_id']})
+        return reverse_lazy('post-detail', kwargs={'pk': self.kwargs['post_id']})
 
-# Update view for comments (Only the author can edit)
 class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Comment
-    form_class = CommentForm
+    fields = ['content']
     template_name = 'blog/comment_form.html'
 
-    def get_queryset(self):
-        # Ensure users can only update their own comments
-        return Comment.objects.filter(author=self.request.user)
-
     def test_func(self):
-        # Ensure that only the comment's author can update it
         comment = self.get_object()
         return comment.author == self.request.user
 
     def get_success_url(self):
-        return reverse('post-detail', kwargs={'pk': self.object.post.pk})
+        return reverse_lazy('post-detail', kwargs={'pk': self.get_object().post.id})
 
-# Delete view for comments (Only the author can delete)
 class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Comment
     template_name = 'blog/comment_confirm_delete.html'
 
-    def get_queryset(self):
-        # Ensure users can only delete their own comments
-        return Comment.objects.filter(author=self.request.user)
-
     def test_func(self):
-        # Ensure that only the comment's author can delete it
         comment = self.get_object()
         return comment.author == self.request.user
 
     def get_success_url(self):
-        return reverse('post-detail', kwargs={'pk': self.object.post.pk})
+        return reverse_lazy('post-detail', kwargs={'pk': self.get_object().post.id})
