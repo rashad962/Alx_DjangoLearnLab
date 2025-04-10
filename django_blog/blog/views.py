@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from .models import Post, Comment
 from .forms import CommentForm
@@ -15,8 +15,8 @@ class CommentListView(ListView):
         post = get_object_or_404(Post, pk=self.kwargs['post_id'])
         return Comment.objects.filter(post=post)
 
-# Create view for comments
-class CommentCreateView(CreateView):
+# Create view for comments (Requires Login)
+class CommentCreateView(LoginRequiredMixin, CreateView):
     model = Comment
     form_class = CommentForm
     template_name = 'blog/comment_form.html'
@@ -30,8 +30,8 @@ class CommentCreateView(CreateView):
     def get_success_url(self):
         return reverse('post-detail', kwargs={'pk': self.kwargs['post_id']})
 
-# Update view for comments
-class CommentUpdateView(UpdateView):
+# Update view for comments (Only the author can edit)
+class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Comment
     form_class = CommentForm
     template_name = 'blog/comment_form.html'
@@ -40,17 +40,27 @@ class CommentUpdateView(UpdateView):
         # Ensure users can only update their own comments
         return Comment.objects.filter(author=self.request.user)
 
+    def test_func(self):
+        # Ensure that only the comment's author can update it
+        comment = self.get_object()
+        return comment.author == self.request.user
+
     def get_success_url(self):
         return reverse('post-detail', kwargs={'pk': self.object.post.pk})
 
-# Delete view for comments
-class CommentDeleteView(DeleteView):
+# Delete view for comments (Only the author can delete)
+class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Comment
     template_name = 'blog/comment_confirm_delete.html'
 
     def get_queryset(self):
         # Ensure users can only delete their own comments
         return Comment.objects.filter(author=self.request.user)
+
+    def test_func(self):
+        # Ensure that only the comment's author can delete it
+        comment = self.get_object()
+        return comment.author == self.request.user
 
     def get_success_url(self):
         return reverse('post-detail', kwargs={'pk': self.object.post.pk})
