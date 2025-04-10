@@ -1,59 +1,28 @@
-from rest_framework import generics, permissions
-from rest_framework.response import Response
-from rest_framework.exceptions import NotFound
-from django.shortcuts import get_object_or_404
-from .models import Post, Like
-from accounts.models import CustomUser
-from .serializers import PostSerializer
-from notifications.models import Notification
-from rest_framework import generics
-post = generics.get_object_or_404(Post, pk=pk)
-# Like a post
-class LikePostView(generics.GenericAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+from rest_framework import viewsets, permissions
+from .models import Post, Comment
+from .serializers import PostSerializer, CommentSerializer
 
-    def post(self, request, pk, *args, **kwargs):
-        # Get the post object
-        post = get_object_or_404(Post, pk=pk)
+# Custom permission to allow only authors to edit/delete
+class IsAuthorOrReadOnly(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return obj.author == request.user
 
-        # Check if the user has already liked the post
-        like, created = Like.objects.get_or_create(user=request.user, post=post)
-        if not created:
-            return Response({"message": "You have already liked this post."}, status=400)
-
-        # Create notification
-        Notification.objects.create(
-            recipient=post.author,
-            actor=request.user,
-            verb="liked your post",
-            target=post
-        )
-
-        return Response({"message": "Post liked!"}, status=201)
-
-# Unlike a post
-class UnlikePostView(generics.GenericAPIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request, pk, *args, **kwargs):
-        # Get the post object
-        post = get_object_or_404(Post, pk=pk)
-
-        # Check if the user has liked the post
-        try:
-            like = Like.objects.get(user=request.user, post=post)
-            like.delete()  # Delete the like
-            return Response({"message": "Post unliked!"}, status=200)
-        except Like.DoesNotExist:
-            return Response({"message": "You have not liked this post yet."}, status=400)
-
-# Feed view (posts from users the current user follows)
-class FeedView(generics.ListAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+# ViewSet for Post
+class PostViewSet(viewsets.ModelViewSet):
+    queryset = Post.objects.all()  # <== Required for check
     serializer_class = PostSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
 
-    def get_queryset(self):
-        user = self.request.user
-        following_users = user.following.all()  # Users this user is following
-        return Post.objects.filter(author__in=following_users).order_by('-created_at')
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
+# ViewSet for Comment
+class CommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()  # <== Required for check
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
