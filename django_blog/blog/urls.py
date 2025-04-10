@@ -7,8 +7,19 @@ from .views import (
 )
 
 urlpatterns = [
+    # Post detail view
     path('post/<int:pk>/', post_detail, name='post_detail'),
-    path('post/<int:pk>/comment/', CommentCreateView.as_view(), name='comment_create'),
-    path('comment/<int:pk>/edit/', CommentUpdateView.as_view(), name='comment_update'),
-    path('comment/<int:pk>/delete/', CommentDeleteView.as_view(), name='comment_delete'),
+    
+    # Comment URLs with more intuitive structure
+    path('post/<int:pk>/comments/new/', 
+         CommentCreateView.as_view(), 
+         name='comment_create'),
+    
+    path('comment/<int:pk>/update/', 
+         CommentUpdateView.as_view(), 
+         name='comment_update'),
+    
+    path('comment/<int:pk>/delete/', 
+         CommentDeleteView.as_view(), 
+         name='comment_delete'),
 ]
