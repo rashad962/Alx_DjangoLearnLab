@@ -10,11 +10,13 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
     template_name = 'blog/comment_form.html'
 
     def form_valid(self, form):
+        # Automatically link comment to post and current user
         form.instance.author = self.request.user
         form.instance.post = Post.objects.get(id=self.kwargs['post_id'])
         return super().form_valid(form)
 
     def get_success_url(self):
+        # Redirect to the post detail page after creating the comment
         return reverse_lazy('post-detail', kwargs={'pk': self.kwargs['post_id']})
 
 # View for updating a comment
@@ -28,6 +30,7 @@ class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return comment.author == self.request.user
 
     def get_success_url(self):
+        # Redirect to the post detail page after editing the comment
         return reverse_lazy('post-detail', kwargs={'pk': self.get_object().post.id})
 
 # View for deleting a comment
@@ -40,4 +43,5 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return comment.author == self.request.user
 
     def get_success_url(self):
+        # Redirect to the post detail page after deleting the comment
         return reverse_lazy('post-detail', kwargs={'pk': self.get_object().post.id})
