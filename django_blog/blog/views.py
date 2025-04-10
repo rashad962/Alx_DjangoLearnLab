@@ -1,51 +1,56 @@
-from django.contrib.auth.decorators import login_required  # Add this import
-from django.utils.decorators import method_decorator  # This is needed to combine the decorator with class-based views
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
+from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.urls import reverse_lazy
-from .models import Post
-from .forms import PostForm
+from .models import Post, Comment
+from .forms import CommentForm
 
-class PostListView(ListView):
-    model = Post
-    template_name = 'blog/post_list.html'
-    context_object_name = 'posts'
-    ordering = ['-created_at']
+# List view for comments (optional, usually displayed within a post's detail view)
+class CommentListView(ListView):
+    model = Comment
+    template_name = 'blog/comment_list.html'
+    context_object_name = 'comments'
 
-class PostDetailView(DetailView):
-    model = Post
-    template_name = 'blog/post_detail.html'
+    def get_queryset(self):
+        post = get_object_or_404(Post, pk=self.kwargs['post_id'])
+        return Comment.objects.filter(post=post)
 
-@method_decorator(login_required, name='dispatch')  # Add the decorator to enforce login
-class PostCreateView(CreateView):
-    model = Post
-    form_class = PostForm
-    template_name = 'blog/post_form.html'
+# Create view for comments
+class CommentCreateView(CreateView):
+    model = Comment
+    form_class = CommentForm
+    template_name = 'blog/comment_form.html'
 
     def form_valid(self, form):
+        post = get_object_or_404(Post, pk=self.kwargs['post_id'])
+        form.instance.post = post
         form.instance.author = self.request.user
         return super().form_valid(form)
 
-@method_decorator(login_required, name='dispatch')  # Add the decorator to enforce login
-class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
-    model = Post
-    form_class = PostForm
-    template_name = 'blog/post_form.html'
+    def get_success_url(self):
+        return reverse('post-detail', kwargs={'pk': self.kwargs['post_id']})
 
-    def form_valid(self, form):
-        form.instance.author = self.request.user
-        return super().form_valid(form)
+# Update view for comments
+class CommentUpdateView(UpdateView):
+    model = Comment
+    form_class = CommentForm
+    template_name = 'blog/comment_form.html'
 
-    def test_func(self):
-        post = self.get_object()
-        return self.request.user == post.author
+    def get_queryset(self):
+        # Ensure users can only update their own comments
+        return Comment.objects.filter(author=self.request.user)
 
-@method_decorator(login_required, name='dispatch')  # Add the decorator to enforce login
-class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
-    model = Post
-    template_name = 'blog/post_confirm_delete.html'
-    success_url = reverse_lazy('post-list')
+    def get_success_url(self):
+        return reverse('post-detail', kwargs={'pk': self.object.post.pk})
 
-    def test_func(self):
-        post = self.get_object()
-        return self.request.user == post.author
+# Delete view for comments
+class CommentDeleteView(DeleteView):
+    model = Comment
+    template_name = 'blog/comment_confirm_delete.html'
+
+    def get_queryset(self):
+        # Ensure users can only delete their own comments
+        return Comment.objects.filter(author=self.request.user)
+
+    def get_success_url(self):
+        return reverse('post-detail', kwargs={'pk': self.object.post.pk})
